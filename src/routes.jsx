@@ -9,6 +9,7 @@ import Dashboard from '@/pages/Dashboard'
 import CustomerList from '@/pages/customers/CustomerList'
 import CustomerDetail from '@/pages/customers/CustomerDetail'
 import CustomerCreate from '@/pages/customers/CustomerCreate'
+import CustomerEdit from '@/pages/customers/CustomerEdit'
 import PledgeList from '@/pages/pledges/PledgeList'
 import NewPledge from '@/pages/pledges/NewPledge'
 import PledgeDetail from '@/pages/pledges/PledgeDetail'
@@ -29,28 +30,29 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       { index: true, element: <Dashboard /> },
-      
+
       // Customer routes
       { path: 'customers', element: <CustomerList /> },
       { path: 'customers/new', element: <CustomerCreate /> },
       { path: 'customers/:id', element: <CustomerDetail /> },
-      
+      { path: 'customers/:id/edit', element: <CustomerEdit /> },
+
       // Pledge routes
       { path: 'pledges', element: <PledgeList /> },
       { path: 'pledges/new', element: <NewPledge /> },
       { path: 'pledges/:id', element: <PledgeDetail /> },
-      
+
       // Transaction routes
       { path: 'renewals', element: <RenewalScreen /> },
       { path: 'redemptions', element: <RedemptionScreen /> },
-      
+
       // Inventory routes
       { path: 'inventory', element: <InventoryList /> },
       { path: 'inventory/reconciliation', element: <StockReconciliation /> },
-      
+
       // Auction routes
       { path: 'auctions', element: <AuctionScreen /> },
-      
+
       // Reports routes
       { path: 'reports', element: <ReportsScreen /> },
     ],

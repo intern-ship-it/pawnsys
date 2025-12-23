@@ -16,7 +16,7 @@ export default function MainLayout() {
   useEffect(() => {
     // Check for stored auth on mount
     const storedAuth = localStorage.getItem('pawnsys_auth')
-    
+
     if (storedAuth) {
       try {
         const authData = JSON.parse(storedAuth)
@@ -30,22 +30,9 @@ export default function MainLayout() {
         console.error('Error parsing stored auth:', e)
       }
     }
-    
-    // For demo purposes, auto-login if not authenticated
-    // In production, redirect to login
+
     if (!isAuthenticated && !storedAuth) {
-      // Auto-login for demo
-      dispatch(loginSuccess({
-        user: {
-          id: 'USR001',
-          name: 'Admin User',
-          email: 'admin@pawnsys.com',
-        },
-        role: 'admin',
-      }))
-      
-      // Or redirect to login:
-      // navigate('/login')
+      navigate('/login')
     }
   }, [dispatch, isAuthenticated, navigate])
 

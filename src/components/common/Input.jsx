@@ -15,6 +15,8 @@ const Input = forwardRef(({
   required = false,
   disabled = false,
   fullWidth = true,
+  multiline = false,
+  rows = 3,
   ...props
 }, ref) => {
   const [showPassword, setShowPassword] = useState(false)
@@ -26,6 +28,21 @@ const Input = forwardRef(({
     md: 'h-11 text-sm',
     lg: 'h-12 text-base',
   }
+
+  const baseInputClasses = cn(
+    'w-full rounded-lg border bg-white px-4 transition-all duration-200',
+    'placeholder:text-zinc-400',
+    'focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500',
+    'disabled:bg-zinc-50 disabled:text-zinc-500 disabled:cursor-not-allowed',
+    !multiline && sizes[size],
+    multiline && 'py-3 text-sm',
+    LeftIcon && 'pl-10',
+    (RightIcon || isPassword) && 'pr-10',
+    error
+      ? 'border-red-300 focus:ring-red-500/30 focus:border-red-500'
+      : 'border-zinc-300 hover:border-zinc-400',
+    inputClassName
+  )
 
   return (
     <div className={cn('flex flex-col gap-1.5', fullWidth && 'w-full', className)}>
@@ -41,31 +58,32 @@ const Input = forwardRef(({
       <div className="relative">
         {/* Left Icon */}
         {LeftIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+          <div className={cn(
+            "absolute left-3 text-zinc-400",
+            multiline ? "top-3" : "top-1/2 -translate-y-1/2"
+          )}>
             <LeftIcon className="w-5 h-5" />
           </div>
         )}
 
-        {/* Input Field */}
-        <input
-          ref={ref}
-          type={inputType}
-          disabled={disabled}
-          className={cn(
-            'w-full rounded-lg border bg-white px-4 transition-all duration-200',
-            'placeholder:text-zinc-400',
-            'focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500',
-            'disabled:bg-zinc-50 disabled:text-zinc-500 disabled:cursor-not-allowed',
-            sizes[size],
-            LeftIcon && 'pl-10',
-            (RightIcon || isPassword) && 'pr-10',
-            error
-              ? 'border-red-300 focus:ring-red-500/30 focus:border-red-500'
-              : 'border-zinc-300 hover:border-zinc-400',
-            inputClassName
-          )}
-          {...props}
-        />
+        {/* Input Field or Textarea */}
+        {multiline ? (
+          <textarea
+            ref={ref}
+            disabled={disabled}
+            rows={rows}
+            className={baseInputClasses}
+            {...props}
+          />
+        ) : (
+          <input
+            ref={ref}
+            type={inputType}
+            disabled={disabled}
+            className={baseInputClasses}
+            {...props}
+          />
+        )}
 
         {/* Right Icon or Password Toggle */}
         {(RightIcon || isPassword) && (

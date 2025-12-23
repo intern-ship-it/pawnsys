@@ -1,5 +1,6 @@
 // Currency formatter for Malaysian Ringgit
 export const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined) return 'RM 0.00'
   return new Intl.NumberFormat('ms-MY', {
     style: 'currency',
     currency: 'MYR',
@@ -20,8 +21,11 @@ export const formatCurrencyShort = (amount) => {
 
 // Date formatter
 export const formatDate = (dateString, format = 'short') => {
+  if (!dateString) return ''
   const date = new Date(dateString)
-  
+
+  if (isNaN(date.getTime())) return ''
+
   if (format === 'short') {
     return date.toLocaleDateString('ms-MY', {
       day: '2-digit',
@@ -29,7 +33,7 @@ export const formatDate = (dateString, format = 'short') => {
       year: 'numeric',
     })
   }
-  
+
   if (format === 'long') {
     return date.toLocaleDateString('ms-MY', {
       day: 'numeric',
@@ -37,7 +41,7 @@ export const formatDate = (dateString, format = 'short') => {
       year: 'numeric',
     })
   }
-  
+
   if (format === 'datetime') {
     return date.toLocaleString('ms-MY', {
       day: '2-digit',
@@ -47,12 +51,13 @@ export const formatDate = (dateString, format = 'short') => {
       minute: '2-digit',
     })
   }
-  
+
   return date.toLocaleDateString('ms-MY')
 }
 
 // IC Number formatter (XXXXXX-XX-XXXX)
 export const formatIC = (ic) => {
+  if (!ic) return ''
   const cleaned = ic.replace(/\D/g, '')
   if (cleaned.length === 12) {
     return `${cleaned.slice(0, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8)}`
@@ -62,6 +67,7 @@ export const formatIC = (ic) => {
 
 // Phone number formatter
 export const formatPhone = (phone) => {
+  if (!phone) return ''
   const cleaned = phone.replace(/\D/g, '')
   if (cleaned.length === 10) {
     return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)} ${cleaned.slice(6)}`
