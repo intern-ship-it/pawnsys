@@ -98,13 +98,13 @@ export default function Sidebar() {
                 {section.title}
               </h3>
             )}
-            
+
             {/* Menu Items */}
             <ul className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon
                 const isActive = location.pathname === item.path
-                
+
                 return (
                   <li key={item.path}>
                     <NavLink
@@ -125,7 +125,7 @@ export default function Sidebar() {
                       {isActive && (
                         <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-amber-500 rounded-r-full" />
                       )}
-                      
+
                       {/* Icon */}
                       <Icon
                         className={cn(
@@ -134,7 +134,7 @@ export default function Sidebar() {
                           item.highlight && !isActive && 'text-amber-500/70'
                         )}
                       />
-                      
+
                       {/* Label */}
                       {!sidebarCollapsed && (
                         <span className={cn(
@@ -144,7 +144,7 @@ export default function Sidebar() {
                           {item.name}
                         </span>
                       )}
-                      
+
                       {/* Tooltip for collapsed state */}
                       {sidebarCollapsed && (
                         <div className="absolute left-full ml-2 px-2 py-1 bg-zinc-800 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 border border-zinc-700">
@@ -171,7 +171,7 @@ export default function Sidebar() {
           <div className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-zinc-900 font-semibold text-sm flex-shrink-0">
             {user?.name?.charAt(0) || 'U'}
           </div>
-          
+
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">

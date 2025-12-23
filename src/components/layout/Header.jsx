@@ -24,7 +24,7 @@ export default function Header() {
   const navigate = useNavigate()
   const { user, role } = useAppSelector((state) => state.auth)
   const { goldPrice, sidebarCollapsed } = useAppSelector((state) => state.ui)
-  
+
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -67,7 +67,7 @@ export default function Header() {
       )}
     >
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
-        {/* Left Section */}
+        {/* Left Section - HQ Badge */}
         <div className="flex items-center gap-4">
           {/* Mobile Menu Toggle */}
           <button
@@ -77,59 +77,59 @@ export default function Header() {
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Page Title / Breadcrumb - Can be dynamic */}
-          <div className="hidden sm:block">
-            <h1 className="text-lg font-semibold text-zinc-800">Dashboard</h1>
-          </div>
-        </div>
-
-        {/* Center Section - Gold Price Widget */}
-        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/50 rounded-xl">
-          {/* Gold Icon */}
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 shadow-sm">
-            <span className="text-xs font-bold text-white">Au</span>
-          </div>
-          
-          {/* Price Info */}
-          <div className="flex flex-col">
-            <span className="text-[10px] text-amber-700/70 uppercase tracking-wide font-medium">
-              Gold 916/g
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-zinc-800">
-                {formatCurrency(goldPrice.price916)}
-              </span>
-              <div className={cn(
-                'flex items-center text-xs font-medium',
-                isPositive ? 'text-emerald-600' : 'text-red-600'
-              )}>
-                {isPositive ? (
-                  <TrendingUp className="w-3 h-3 mr-0.5" />
-                ) : (
-                  <TrendingDown className="w-3 h-3 mr-0.5" />
-                )}
-                <span>{isPositive ? '+' : ''}{priceChangePercent}%</span>
-              </div>
+          {/* HQ Label */}
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-zinc-100 rounded-lg text-zinc-600">
+            <div className="w-4 h-4 text-zinc-500">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
             </div>
-          </div>
-          
-          {/* 999 Price */}
-          <div className="pl-3 ml-3 border-l border-amber-200">
-            <span className="text-[10px] text-amber-700/70 uppercase tracking-wide font-medium">
-              999/g
-            </span>
-            <p className="text-sm font-semibold text-zinc-700">
-              {formatCurrency(goldPrice.price999)}
-            </p>
+            <span className="text-sm font-medium">HQ - Kuala Lumpur</span>
           </div>
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-2">
-          {/* Search Button */}
+        <div className="flex items-center gap-3 md:gap-4">
+          {/* Gold Price Widget (New Design) */}
+          {/* Gold Price Widget (New Design) */}
+          <div className="hidden md:flex items-center gap-3 px-5 py-2 bg-[#F59E0B] rounded-2xl shadow-sm text-zinc-900 shadow-amber-500/20">
+            {/* Icon */}
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900 text-[#F59E0B]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
+                <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            </div>
+
+            {/* Price Info */}
+            <div className="flex flex-col items-start leading-none gap-0.5">
+              <span className="text-[10px] uppercase font-bold text-zinc-900/60 tracking-wider">
+                Gold (999)
+              </span>
+              <span className="text-xl font-bold text-zinc-900">
+                {formatCurrency(goldPrice.price999)}/g
+              </span>
+            </div>
+          </div>
+
+          {/* Search Bar (Persistent) */}
+          <div className="hidden md:flex items-center relative w-64 h-10">
+            <Search className="absolute left-3 w-4 h-4 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full h-full pl-10 pr-4 bg-zinc-100 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-zinc-400"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Mobile Search Icon */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+            className="md:hidden p-2 rounded-lg text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
           >
             <Search className="w-5 h-5" />
           </button>
@@ -142,14 +142,14 @@ export default function Header() {
             >
               <Bell className="w-5 h-5" />
               {/* Notification Badge */}
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
 
             {/* Notification Dropdown */}
             {notificationOpen && (
               <>
-                <div 
-                  className="fixed inset-0 z-40" 
+                <div
+                  className="fixed inset-0 z-40"
                   onClick={() => setNotificationOpen(false)}
                 />
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-zinc-200 z-50 overflow-hidden">
@@ -178,7 +178,7 @@ export default function Header() {
           </div>
 
           {/* Divider */}
-          <div className="w-px h-6 bg-zinc-200 mx-1" />
+          <div className="hidden md:block w-px h-6 bg-zinc-200 mx-1" />
 
           {/* User Menu */}
           <div className="relative">
@@ -190,7 +190,7 @@ export default function Header() {
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white font-semibold text-sm">
                 {user?.name?.charAt(0) || 'U'}
               </div>
-              
+
               {/* Name & Role */}
               <div className="hidden lg:block text-left">
                 <p className="text-sm font-medium text-zinc-700 leading-tight">
@@ -198,15 +198,15 @@ export default function Header() {
                 </p>
                 <p className="text-xs text-zinc-400 capitalize">{role || 'User'}</p>
               </div>
-              
+
               <ChevronDown className="w-4 h-4 text-zinc-400 hidden lg:block" />
             </button>
 
             {/* User Dropdown */}
             {userMenuOpen && (
               <>
-                <div 
-                  className="fixed inset-0 z-40" 
+                <div
+                  className="fixed inset-0 z-40"
                   onClick={() => setUserMenuOpen(false)}
                 />
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-zinc-200 z-50 overflow-hidden">
@@ -214,7 +214,7 @@ export default function Header() {
                     <p className="font-medium text-zinc-800">{user?.name || 'Guest'}</p>
                     <p className="text-sm text-zinc-500">{user?.email || 'guest@pawnsys.com'}</p>
                   </div>
-                  
+
                   <div className="py-1">
                     <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
                       <User className="w-4 h-4 text-zinc-400" />
@@ -229,7 +229,7 @@ export default function Header() {
                       Help & Support
                     </button>
                   </div>
-                  
+
                   <div className="border-t border-zinc-100 py-1">
                     <button
                       onClick={handleLogout}
@@ -268,24 +268,24 @@ export default function Header() {
                 <X className="w-5 h-5" />
               </button>
             </form>
-            
+
             {/* Quick Links */}
             <div className="px-4 py-3 bg-zinc-50 border-t border-zinc-100">
               <p className="text-xs text-zinc-500 mb-2">Quick Actions</p>
               <div className="flex flex-wrap gap-2">
-                <button 
+                <button
                   onClick={() => { navigate('/pledges/new'); setSearchOpen(false); }}
                   className="px-3 py-1.5 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200"
                 >
                   New Pledge
                 </button>
-                <button 
+                <button
                   onClick={() => { navigate('/customers/new'); setSearchOpen(false); }}
                   className="px-3 py-1.5 text-sm bg-zinc-100 text-zinc-700 rounded-lg hover:bg-zinc-200"
                 >
                   Add Customer
                 </button>
-                <button 
+                <button
                   onClick={() => { navigate('/renewals'); setSearchOpen(false); }}
                   className="px-3 py-1.5 text-sm bg-zinc-100 text-zinc-700 rounded-lg hover:bg-zinc-200"
                 >
