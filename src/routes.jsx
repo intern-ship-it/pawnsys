@@ -19,6 +19,7 @@ import InventoryList from '@/pages/inventory/InventoryList'
 import StockReconciliation from '@/pages/inventory/StockReconciliation'
 import AuctionScreen from '@/pages/auctions/AuctionScreen'
 import ReportsScreen from '@/pages/reports/ReportsScreen'
+import SettingsScreen from './pages/settings/SettingsScreen'
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
 
       // Reports routes
       { path: 'reports', element: <ReportsScreen /> },
+      { path: 'settings', element: <SettingsScreen /> },
     ],
   },
   {

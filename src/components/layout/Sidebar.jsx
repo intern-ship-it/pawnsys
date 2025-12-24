@@ -22,31 +22,37 @@ const menuItems = [
   {
     title: 'MAIN',
     items: [
-      { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+      { name: 'Dashboard', path: '/', icon: LayoutDashboard, exact: true },
     ],
   },
   {
     title: 'TRANSACTIONS',
     items: [
-      { name: 'New Pledge', path: '/pledges/new', icon: FileText, highlight: true },
-      { name: 'All Pledges', path: '/pledges', icon: FileText },
-      { name: 'Renewals', path: '/renewals', icon: RefreshCw },
-      { name: 'Redemptions', path: '/redemptions', icon: Wallet },
+      { name: 'New Pledge', path: '/pledges/new', icon: FileText, highlight: true, exact: true },
+      { name: 'All Pledges', path: '/pledges', icon: FileText, exact: true },
+      { name: 'Renewals', path: '/renewals', icon: RefreshCw, exact: true },
+      { name: 'Redemptions', path: '/redemptions', icon: Wallet, exact: true },
     ],
   },
   {
     title: 'MANAGEMENT',
     items: [
       { name: 'Customers', path: '/customers', icon: Users },
-      { name: 'Inventory', path: '/inventory', icon: Package },
-      { name: 'Reconciliation', path: '/inventory/reconciliation', icon: ClipboardCheck },
-      { name: 'Auctions', path: '/auctions', icon: Gavel },
+      { name: 'Inventory', path: '/inventory', icon: Package, exact: true },
+      { name: 'Reconciliation', path: '/inventory/reconciliation', icon: ClipboardCheck, exact: true },
+      { name: 'Auctions', path: '/auctions', icon: Gavel, exact: true },
     ],
   },
   {
     title: 'REPORTS',
     items: [
-      { name: 'Reports', path: '/reports', icon: BarChart3 },
+      { name: 'Reports', path: '/reports', icon: BarChart3, exact: true },
+    ],
+  },
+  {
+    title: 'SYSTEM',
+    items: [
+      { name: 'Settings', path: '/settings', icon: Settings, exact: true },
     ],
   },
 ]
@@ -59,6 +65,14 @@ export default function Sidebar() {
 
   const handleToggleCollapse = () => {
     dispatch(toggleSidebarCollapse())
+  }
+
+  // Check if path is active
+  const isPathActive = (itemPath, exact) => {
+    if (exact) {
+      return location.pathname === itemPath
+    }
+    return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/')
   }
 
   return (
@@ -103,23 +117,21 @@ export default function Sidebar() {
             <ul className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon
-                const isActive = location.pathname === item.path
+                const isActive = isPathActive(item.path, item.exact)
 
                 return (
                   <li key={item.path}>
                     <NavLink
                       to={item.path}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                          'group relative',
-                          isActive
-                            ? 'bg-amber-500/10 text-amber-500'
-                            : 'text-zinc-400 hover:text-white hover:bg-zinc-700/50',
-                          item.highlight && !isActive && 'border border-amber-500/30 bg-amber-500/5',
-                          sidebarCollapsed && 'justify-center px-2'
-                        )
-                      }
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                        'group relative',
+                        isActive
+                          ? 'bg-amber-500/10 text-amber-500'
+                          : 'text-zinc-400 hover:text-white hover:bg-zinc-700/50',
+                        item.highlight && !isActive && 'border border-amber-500/30 bg-amber-500/5',
+                        sidebarCollapsed && 'justify-center px-2'
+                      )}
                     >
                       {/* Active Indicator */}
                       {isActive && (
