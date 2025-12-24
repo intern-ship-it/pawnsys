@@ -16,6 +16,9 @@ import {
   ChevronRight,
   LogOut,
   ClipboardCheck,
+  ScrollText,
+  Grid3X3,
+  Calendar,
 } from 'lucide-react'
 
 const menuItems = [
@@ -39,6 +42,7 @@ const menuItems = [
     items: [
       { name: 'Customers', path: '/customers', icon: Users },
       { name: 'Inventory', path: '/inventory', icon: Package, exact: true },
+      { name: 'Rack Map', path: '/inventory/rack-map', icon: Grid3X3, exact: true },
       { name: 'Reconciliation', path: '/inventory/reconciliation', icon: ClipboardCheck, exact: true },
       { name: 'Auctions', path: '/auctions', icon: Gavel, exact: true },
     ],
@@ -47,12 +51,15 @@ const menuItems = [
     title: 'REPORTS',
     items: [
       { name: 'Reports', path: '/reports', icon: BarChart3, exact: true },
+      { name: 'Day End', path: '/reports/day-end', icon: Calendar, exact: true },
     ],
   },
   {
     title: 'SYSTEM',
     items: [
       { name: 'Settings', path: '/settings', icon: Settings, exact: true },
+      { name: 'Users', path: '/settings/users', icon: Users, exact: true },
+      { name: 'Audit Log', path: '/settings/audit-log', icon: ScrollText, exact: true },
     ],
   },
 ]

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router'
 import { useAppDispatch } from '@/app/hooks'
 import { addToast } from '@/features/ui/uiSlice'
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from '@/utils/localStorage'
 import { cn } from '@/lib/utils'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Card, Button, Input, Select, Badge, Modal } from '@/components/common'
 import {
@@ -27,6 +28,9 @@ import {
     Info,
     Clock,
     Calculator,
+    Users,
+    ChevronRight,
+    MessageCircle,
 } from 'lucide-react'
 
 // Default settings structure
@@ -102,19 +106,15 @@ const tabs = [
 ]
 
 export default function SettingsScreen() {
+    const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const [activeTab, setActiveTab] = useState('company')
-    const [settings, setSettings] = useState(defaultSettings)
+    const [settings, setSettings] = useState(() => {
+        const stored = getStorageItem(STORAGE_KEYS.SETTINGS, null)
+        return stored ? { ...defaultSettings, ...stored } : defaultSettings
+    })
     const [isSaving, setIsSaving] = useState(false)
     const [hasChanges, setHasChanges] = useState(false)
-
-    // Load settings on mount
-    useEffect(() => {
-        const stored = getStorageItem(STORAGE_KEYS.SETTINGS, null)
-        if (stored) {
-            setSettings({ ...defaultSettings, ...stored })
-        }
-    }, [])
 
     // Save settings
     const handleSave = () => {
@@ -227,6 +227,38 @@ export default function SettingsScreen() {
                             </Card>
                         </motion.div>
                     )}
+
+                    {/* User Management Link */}
+                    <Card className="mt-4 p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/settings/users')}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                    <Users className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-zinc-800">User Management</p>
+                                    <p className="text-xs text-zinc-500">Manage users & permissions</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-zinc-400" />
+                        </div>
+                    </Card>
+
+                    {/* WhatsApp Settings Link */}
+                    <Card className="mt-2 p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/settings/whatsapp')}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                    <MessageCircle className="w-5 h-5 text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-zinc-800">WhatsApp</p>
+                                    <p className="text-xs text-zinc-500">Notifications & templates</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-zinc-400" />
+                        </div>
+                    </Card>
                 </div>
 
                 {/* Tab Content */}
@@ -735,7 +767,6 @@ function InterestTab({ settings, updateSettings }) {
 // Categories Tab
 function CategoriesTab({ settings, updateSettings }) {
     const [showAddModal, setShowAddModal] = useState(false)
-    const [editingId, setEditingId] = useState(null)
     const [formData, setFormData] = useState({ name: '', nameMs: '' })
     const categories = settings.categories
 
