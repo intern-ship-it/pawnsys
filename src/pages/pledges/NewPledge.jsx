@@ -35,6 +35,11 @@ import {
   CheckCircle,
   AlertCircle,
   Info,
+  DollarSign,
+  Edit,
+  Calendar,
+  Clock,
+  TrendingUp,
 } from 'lucide-react'
 
 // Step configuration
@@ -78,6 +83,7 @@ const emptyItem = {
   description: '',
   weight: '',
   purity: '916',
+  pricePerGram: '', // Custom price per gram (if empty, uses market price)
   stoneDeduction: '',
   stoneDeductionType: 'amount',
   photo: null,
@@ -149,13 +155,20 @@ export default function NewPledge() {
     }
   }, [currentStep])
 
+  // Get market price for a purity
+  const getMarketPrice = (purity) => {
+    const purityOption = purityOptions.find(p => p.value === purity)
+    return goldPrice[purityOption?.priceKey] || goldPrice.price916
+  }
+
   // Calculate totals
   const calculateItemValue = (item) => {
-    if (!item.weight || !item.purity) return { gross: 0, deduction: 0, net: 0 }
+    if (!item.weight || !item.purity) return { gross: 0, deduction: 0, net: 0, priceUsed: 0 }
 
     const weight = parseFloat(item.weight) || 0
-    const purityOption = purityOptions.find(p => p.value === item.purity)
-    const pricePerGram = goldPrice[purityOption?.priceKey] || goldPrice.price916
+    const marketPrice = getMarketPrice(item.purity)
+    // Use custom price if set, otherwise use market price
+    const pricePerGram = item.pricePerGram ? parseFloat(item.pricePerGram) : marketPrice
 
     const grossValue = weight * pricePerGram
 
@@ -170,7 +183,7 @@ export default function NewPledge() {
     }
 
     const netValue = Math.max(0, grossValue - deduction)
-    return { gross: grossValue, deduction, net: netValue }
+    return { gross: grossValue, deduction, net: netValue, priceUsed: pricePerGram }
   }
 
   const totals = items.reduce((acc, item) => {
@@ -688,7 +701,7 @@ export default function NewPledge() {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <Select
                         label="Category"
                         value={item.category}
@@ -699,9 +712,37 @@ export default function NewPledge() {
                       <Select
                         label="Purity"
                         value={item.purity}
-                        onChange={(e) => updateItem(item.id, 'purity', e.target.value)}
+                        onChange={(e) => {
+                          updateItem(item.id, 'purity', e.target.value)
+                          // Reset custom price when purity changes
+                          updateItem(item.id, 'pricePerGram', '')
+                        }}
                         options={purityOptions}
                       />
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                          Price/g (RM) <span className="text-amber-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder={getMarketPrice(item.purity).toFixed(2)}
+                            value={item.pricePerGram}
+                            onChange={(e) => updateItem(item.id, 'pricePerGram', e.target.value)}
+                            leftIcon={DollarSign}
+                          />
+                          {!item.pricePerGram && (
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                              Market
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-zinc-400 mt-1">
+                          Market: RM {getMarketPrice(item.purity).toFixed(2)}
+                        </p>
+                      </div>
                       <Input
                         label="Weight (g)"
                         type="number"
@@ -738,15 +779,16 @@ export default function NewPledge() {
                           />
                         </div>
                       </div>
-                      <div className="md:col-span-2">
-                        <Input
-                          label="Description / Remarks"
-                          placeholder="e.g., 916 Gold Chain with pendant"
-                          value={item.description}
-                          onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <Input
+                        label="Description / Remarks"
+                        placeholder="e.g., 916 Gold Chain with pendant"
+                        value={item.description}
+                        onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                      />
+                      <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1.5">
                           Item Photo
                         </label>
@@ -787,12 +829,32 @@ export default function NewPledge() {
                     </div>
 
                     {item.weight && item.category && (
-                      <div className="mt-4 pt-4 border-t border-zinc-200">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-zinc-500">Estimated Value:</span>
-                          <span className="font-semibold text-zinc-800">
-                            {formatCurrency(calculateItemValue(item).net)}
-                          </span>
+                      <div className="mt-4 pt-4 border-t border-zinc-200 bg-white rounded-lg p-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-zinc-500 block">Price Used</span>
+                            <span className="font-semibold text-zinc-800">
+                              RM {calculateItemValue(item).priceUsed.toFixed(2)}/g
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 block">Gross Value</span>
+                            <span className="font-semibold text-zinc-800">
+                              {formatCurrency(calculateItemValue(item).gross)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 block">Deduction</span>
+                            <span className="font-semibold text-red-600">
+                              - {formatCurrency(calculateItemValue(item).deduction)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 block">Net Value</span>
+                            <span className="font-bold text-emerald-600 text-lg">
+                              {formatCurrency(calculateItemValue(item).net)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -840,40 +902,80 @@ export default function NewPledge() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-zinc-800">Valuation & Loan Amount</h3>
-                  <p className="text-sm text-zinc-500">Set loan percentage and review calculation</p>
+                  <p className="text-sm text-zinc-500">Review calculation and set loan percentage</p>
                 </div>
               </div>
 
-              {/* Gold Price Info */}
-              <div className="p-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl text-white mb-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Gem className="w-5 h-5" />
-                  <span className="font-medium">Current Gold Prices (RM/gram)</span>
+              {/* Items Breakdown Table */}
+              <div className="border border-zinc-200 rounded-xl overflow-hidden mb-6">
+                <div className="bg-zinc-800 text-white px-4 py-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Items Breakdown
+                  </h4>
                 </div>
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-amber-100 text-xs">999 (24K)</p>
-                    <p className="text-lg font-bold">{formatCurrency(goldPrice.price999)}</p>
-                  </div>
-                  <div>
-                    <p className="text-amber-100 text-xs">916 (22K)</p>
-                    <p className="text-lg font-bold">{formatCurrency(goldPrice.price916)}</p>
-                  </div>
-                  <div>
-                    <p className="text-amber-100 text-xs">875 (21K)</p>
-                    <p className="text-lg font-bold">{formatCurrency(goldPrice.price875)}</p>
-                  </div>
-                  <div>
-                    <p className="text-amber-100 text-xs">750 (18K)</p>
-                    <p className="text-lg font-bold">{formatCurrency(goldPrice.price750)}</p>
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-zinc-50 border-b border-zinc-200">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-semibold text-zinc-600">#</th>
+                        <th className="text-left px-4 py-3 font-semibold text-zinc-600">Item</th>
+                        <th className="text-center px-4 py-3 font-semibold text-zinc-600">Purity</th>
+                        <th className="text-right px-4 py-3 font-semibold text-zinc-600">Weight</th>
+                        <th className="text-right px-4 py-3 font-semibold text-zinc-600">Price/g</th>
+                        <th className="text-right px-4 py-3 font-semibold text-zinc-600">Gross</th>
+                        <th className="text-right px-4 py-3 font-semibold text-zinc-600">Deduction</th>
+                        <th className="text-right px-4 py-3 font-semibold text-zinc-600">Net Value</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100">
+                      {items.filter(i => i.category && i.weight).map((item, idx) => {
+                        const calc = calculateItemValue(item)
+                        const category = itemCategories.find(c => c.value === item.category)
+                        return (
+                          <tr key={item.id} className="hover:bg-zinc-50">
+                            <td className="px-4 py-3 text-zinc-500">{idx + 1}</td>
+                            <td className="px-4 py-3 font-medium">{category?.label || item.category}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+                                {item.purity}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">{parseFloat(item.weight).toFixed(2)}g</td>
+                            <td className="px-4 py-3 text-right">RM {calc.priceUsed.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-right">{formatCurrency(calc.gross)}</td>
+                            <td className="px-4 py-3 text-right text-red-600">
+                              {calc.deduction > 0 ? `- ${formatCurrency(calc.deduction)}` : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-right font-semibold text-emerald-600">
+                              {formatCurrency(calc.net)}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot className="bg-amber-50 border-t-2 border-amber-200">
+                      <tr>
+                        <td colSpan="3" className="px-4 py-3 font-bold text-zinc-800">TOTAL</td>
+                        <td className="px-4 py-3 text-right font-bold">{totals.totalWeight.toFixed(2)}g</td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-bold">{formatCurrency(totals.grossValue)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-red-600">
+                          {totals.totalDeduction > 0 ? `- ${formatCurrency(totals.totalDeduction)}` : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-emerald-600 text-lg">
+                          {formatCurrency(totals.netValue)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </div>
 
-              {/* Loan Percentage */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-zinc-700 mb-3">
-                  Loan Percentage
+              {/* Loan Percentage Selection */}
+              <div className="border border-zinc-200 rounded-xl p-4 mb-6">
+                <label className="block text-sm font-semibold text-zinc-700 mb-3">
+                  Select Loan Percentage (Margin)
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {percentagePresets.map((percent) => (
@@ -885,9 +987,9 @@ export default function NewPledge() {
                         setUseCustomPercentage(false)
                       }}
                       className={cn(
-                        'px-4 py-2 rounded-lg font-medium transition-all',
+                        'px-6 py-3 rounded-lg font-bold transition-all text-lg',
                         !useCustomPercentage && loanPercentage === percent
-                          ? 'bg-zinc-800 text-white'
+                          ? 'bg-amber-500 text-white shadow-lg'
                           : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                       )}
                     >
@@ -898,9 +1000,9 @@ export default function NewPledge() {
                     type="button"
                     onClick={() => setUseCustomPercentage(true)}
                     className={cn(
-                      'px-4 py-2 rounded-lg font-medium transition-all',
+                      'px-6 py-3 rounded-lg font-bold transition-all',
                       useCustomPercentage
-                        ? 'bg-zinc-800 text-white'
+                        ? 'bg-amber-500 text-white shadow-lg'
                         : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                     )}
                   >
@@ -912,51 +1014,150 @@ export default function NewPledge() {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
+                    className="flex items-center gap-2"
                   >
                     <Input
                       type="number"
                       min="1"
                       max="100"
-                      placeholder="Enter percentage"
+                      placeholder="Enter %"
                       value={customPercentage}
                       onChange={(e) => setCustomPercentage(e.target.value)}
                       className="w-32"
                     />
+                    <span className="text-zinc-500">%</span>
                   </motion.div>
                 )}
               </div>
 
-              {/* Calculation Summary */}
-              <div className="border border-zinc-200 rounded-xl overflow-hidden">
-                <div className="bg-zinc-50 px-4 py-3 border-b border-zinc-200">
-                  <h4 className="font-semibold text-zinc-800">Calculation Summary</h4>
-                </div>
-                <div className="p-4 space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Net Item Value</span>
-                    <span className="font-medium">{formatCurrency(totals.netValue)}</span>
+              {/* Loan Calculation Summary */}
+              <div className="bg-gradient-to-br from-zinc-800 to-zinc-900 text-white rounded-xl p-6 mb-6">
+                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-amber-400" />
+                  Loan Calculation
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-700">
+                    <span className="text-zinc-400">Total Net Value (A)</span>
+                    <span className="font-semibold text-lg">{formatCurrency(totals.netValue)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Loan Percentage</span>
-                    <span className="font-medium">{effectivePercentage}%</span>
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-700">
+                    <span className="text-zinc-400">Loan Percentage (B)</span>
+                    <span className="font-semibold text-lg">{effectivePercentage}%</span>
                   </div>
-                  <div className="flex justify-between pt-3 border-t border-zinc-200">
-                    <span className="text-zinc-800 font-semibold">Loan Amount</span>
-                    <span className="text-xl font-bold text-emerald-600">{formatCurrency(loanAmount)}</span>
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-700">
+                    <span className="text-zinc-400">Calculation (A × B)</span>
+                    <span className="text-zinc-300">
+                      {formatCurrency(totals.netValue)} × {effectivePercentage}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-4 bg-amber-500/20 -mx-6 px-6 rounded-lg">
+                    <span className="text-amber-400 font-semibold text-lg">LOAN AMOUNT</span>
+                    <span className="text-3xl font-bold text-amber-400">{formatCurrency(loanAmount)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Interest Info */}
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-blue-800">Interest Rate Information</p>
-                    <p className="text-blue-600 mt-1">
-                      First 6 months: 0.5% per month | After 6 months: 1.5% per month
+              {/* Interest & Repayment Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Interest Rates */}
+                <div className="border border-blue-200 bg-blue-50 rounded-xl p-4">
+                  <h5 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    Interest Rates
+                  </h5>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between p-2 bg-white rounded-lg">
+                      <span className="text-zinc-600">First 6 months</span>
+                      <span className="font-bold text-blue-600">0.5% / month</span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-white rounded-lg">
+                      <span className="text-zinc-600">After 6 months (renewed)</span>
+                      <span className="font-bold text-amber-600">1.5% / month</span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-white rounded-lg">
+                      <span className="text-zinc-600">Overdue (not renewed)</span>
+                      <span className="font-bold text-red-600">2.0% / month</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monthly Interest Examples */}
+                <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-4">
+                  <h5 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Monthly Interest (First 6 Months)
+                  </h5>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between p-2 bg-white rounded-lg">
+                      <span className="text-zinc-600">Loan Amount</span>
+                      <span className="font-semibold">{formatCurrency(loanAmount)}</span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-white rounded-lg">
+                      <span className="text-zinc-600">Monthly Interest (0.5%)</span>
+                      <span className="font-bold text-emerald-600">
+                        {formatCurrency(loanAmount * 0.005)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-amber-100 rounded-lg border border-amber-200">
+                      <span className="text-amber-800 font-medium">6 Months Total Interest</span>
+                      <span className="font-bold text-amber-700">
+                        {formatCurrency(loanAmount * 0.005 * 6)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Redemption Estimate */}
+              <div className="border-2 border-amber-300 bg-amber-50 rounded-xl p-4">
+                <h5 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                  <Wallet className="w-4 h-4" />
+                  Redemption Estimate (If Redeemed Within 6 Months)
+                </h5>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-white rounded-lg p-3 border border-amber-200">
+                    <p className="text-xs text-zinc-500 mb-1">After 1 Month</p>
+                    <p className="font-bold text-amber-700">
+                      {formatCurrency(loanAmount + (loanAmount * 0.005 * 1))}
                     </p>
                   </div>
+                  <div className="bg-white rounded-lg p-3 border border-amber-200">
+                    <p className="text-xs text-zinc-500 mb-1">After 3 Months</p>
+                    <p className="font-bold text-amber-700">
+                      {formatCurrency(loanAmount + (loanAmount * 0.005 * 3))}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-amber-200">
+                    <p className="text-xs text-zinc-500 mb-1">After 6 Months</p>
+                    <p className="font-bold text-amber-700">
+                      {formatCurrency(loanAmount + (loanAmount * 0.005 * 6))}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-amber-600 mt-3 text-center">
+                  * Redemption Amount = Loan + Interest. Grace period of 7 days after due date.
+                </p>
+              </div>
+
+              {/* Due Date Info */}
+              <div className="mt-4 p-4 bg-zinc-100 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-zinc-500" />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-700">Loan Period</p>
+                    <p className="text-xs text-zinc-500">Standard 6 months tenure</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-zinc-500">Due Date</p>
+                  <p className="font-bold text-zinc-800">
+                    {new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString('en-MY', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -1244,7 +1445,7 @@ export default function NewPledge() {
       {/* Success Modal */}
       <Modal
         isOpen={showSuccessModal}
-        onClose={() => { }}
+        onClose={() => {}}
         title="Pledge Created Successfully!"
         size="md"
       >

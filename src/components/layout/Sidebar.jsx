@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { toggleSidebarCollapse } from '@/features/ui/uiSlice'
+import { getStorageItem, STORAGE_KEYS } from '@/utils/localStorage'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -70,6 +72,49 @@ export default function Sidebar() {
   const { sidebarCollapsed } = useAppSelector((state) => state.ui)
   const { user, role } = useAppSelector((state) => state.auth)
 
+  // Get company name from settings
+const [companyName, setCompanyName] = useState('Dsara Asset Ventures Sdn Bhd')
+const [companyShort, setCompanyShort] = useState('DA')
+
+  useEffect(() => {
+    const settings = getStorageItem(STORAGE_KEYS.SETTINGS, {})
+    if (settings.company?.name) {
+      setCompanyName(settings.company.name)
+      // Create short name from first letters of each word
+      const words = settings.company.name.split(' ')
+      if (words.length >= 2) {
+        setCompanyShort(words[0][0] + words[1][0])
+      } else {
+        setCompanyShort(settings.company.name.substring(0, 2).toUpperCase())
+      }
+    }
+  }, [])
+
+  // Listen for settings changes
+  useEffect(() => {
+    const handleSettingsUpdate = (event) => {
+      const settings = event.detail || getStorageItem(STORAGE_KEYS.SETTINGS, {})
+      if (settings.company?.name) {
+        setCompanyName(settings.company.name)
+        const words = settings.company.name.split(' ')
+        if (words.length >= 2) {
+          setCompanyShort(words[0][0] + words[1][0])
+        } else {
+          setCompanyShort(settings.company.name.substring(0, 2).toUpperCase())
+        }
+      }
+    }
+    
+    // Listen for custom settings update event
+    window.addEventListener('settingsUpdated', handleSettingsUpdate)
+    window.addEventListener('storage', handleSettingsUpdate)
+    
+    return () => {
+      window.removeEventListener('settingsUpdated', handleSettingsUpdate)
+      window.removeEventListener('storage', handleSettingsUpdate)
+    }
+  }, [])
+
   const handleToggleCollapse = () => {
     dispatch(toggleSidebarCollapse())
   }
@@ -96,14 +141,16 @@ export default function Sidebar() {
       <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-700/50">
         <div className={cn('flex items-center gap-3', sidebarCollapsed && 'justify-center w-full')}>
           {/* Logo Icon */}
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/20">
-            <span className="text-lg font-bold text-zinc-900">PS</span>
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/20 flex-shrink-0">
+            <span className="text-lg font-bold text-zinc-900">{companyShort}</span>
           </div>
           {/* Logo Text */}
           {!sidebarCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-white tracking-tight">PawnSys</span>
-              <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Pajak Kedai</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-bold text-white tracking-tight truncate" title={companyName}>
+                {companyName.length > 20 ? companyName.substring(0, 20) + '...' : companyName}
+              </span>
+              <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Pajak Gadai</span>
             </div>
           )}
         </div>
@@ -119,13 +166,13 @@ export default function Sidebar() {
                 {section.title}
               </h3>
             )}
-
+            
             {/* Menu Items */}
             <ul className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon
                 const isActive = isPathActive(item.path, item.exact)
-
+                
                 return (
                   <li key={item.path}>
                     <NavLink
@@ -144,7 +191,7 @@ export default function Sidebar() {
                       {isActive && (
                         <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-amber-500 rounded-r-full" />
                       )}
-
+                      
                       {/* Icon */}
                       <Icon
                         className={cn(
@@ -153,7 +200,7 @@ export default function Sidebar() {
                           item.highlight && !isActive && 'text-amber-500/70'
                         )}
                       />
-
+                      
                       {/* Label */}
                       {!sidebarCollapsed && (
                         <span className={cn(
@@ -163,7 +210,7 @@ export default function Sidebar() {
                           {item.name}
                         </span>
                       )}
-
+                      
                       {/* Tooltip for collapsed state */}
                       {sidebarCollapsed && (
                         <div className="absolute left-full ml-2 px-2 py-1 bg-zinc-800 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 border border-zinc-700">
@@ -190,7 +237,7 @@ export default function Sidebar() {
           <div className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-zinc-900 font-semibold text-sm flex-shrink-0">
             {user?.name?.charAt(0) || 'U'}
           </div>
-
+          
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
